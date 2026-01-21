@@ -169,7 +169,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
             
             {/* Personalized Block */}
             <div className="mt-8 p-8 bg-white/60 backdrop-blur-sm rounded-xl shadow-sm border border-white border-opacity-40">
-              <p className="font-serif text-3xl text-wedding-charcoal mb-4">Dear {displayGuestName},</p>
+              <p className="font-serif text-3xl text-wedding-charcoal mb-4">Dear {invitee?.title ? `${invitee.title} ` : ''}{displayGuestName},</p>
               <p className="text-wedding-stone/90 leading-relaxed max-w-md mx-auto">
                 {displayMessage}
               </p>
