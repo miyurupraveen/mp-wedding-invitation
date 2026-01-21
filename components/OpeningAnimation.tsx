@@ -29,9 +29,9 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
       colors: ['#D4AF37', '#E8D5D5', '#A89F91', '#F5EFE6'], // Gold, Blush, Stone, Cream
       zIndex: 100, // Ensure it's above the envelope but below extreme overlays if any
       disableForReducedMotion: true,
-      gravity: 0.5,       // Slower fall
+      gravity: 1,       // Slower fall
       startVelocity: 30,  // Slower pop
-      ticks: 400,         // Last longer
+      ticks: 300,         // Last longer
       scalar: 1.1         // Slightly larger
     });
     
