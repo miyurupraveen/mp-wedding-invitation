@@ -34,7 +34,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [settings, setSettings] = useState<WeddingSettings>(defaultSettings);
   const [invitees, setInvitees] = useState<Invitee[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
 
   // --- 1. Load Data (Firebase vs LocalStorage) ---
   useEffect(() => {
@@ -202,6 +202,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       settings,
       invitees,
       isAuthenticated,
+      isLoading,
       login,
       logout,
       updateSettings,
