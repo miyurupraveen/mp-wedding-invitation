@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Icons } from './UI';
-// @ts-ignore
 import confetti from 'canvas-confetti';
 
 interface OpeningAnimationProps {
