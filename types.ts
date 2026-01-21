@@ -5,12 +5,20 @@ export interface Invitee {
   title?: string; // e.g. Mr, Mrs, Ven, Family
   message?: string;
   viewed: boolean;
+  // RSVP Fields
+  rsvpStatus?: 'attending' | 'declined' | 'pending';
+  guestCount?: number;
+  dietaryRestrictions?: string;
 }
 
 export interface WeddingSettings {
   inviteImage: string | null; // Base64 string of the uploaded image
   coupleName: string;
   weddingDate: string;
+  // Venue Fields
+  venueName?: string;
+  venueAddress?: string;
+  mapUrl?: string; // Google Maps Embed URL
 }
 
 export interface WeddingContextType {
