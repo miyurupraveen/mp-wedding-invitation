@@ -261,40 +261,37 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
             <div className="max-w-4xl w-full text-center">
                <h2 className="font-serif text-3xl md:text-4xl text-wedding-gold mb-8">The Celebration</h2>
                
-               <div className="grid md:grid-cols-2 gap-8 items-center bg-white p-6 md:p-8 rounded-lg shadow-md border border-wedding-stone/10">
-                  <div className="text-left space-y-4 order-2 md:order-1">
-                    <div>
-                      <h3 className="text-xl font-bold text-wedding-charcoal">{settings.venueName || "Wedding Venue"}</h3>
-                      <p className="text-wedding-stone mt-1">{settings.venueAddress || "Address details here"}</p>
-                    </div>
-                    <div className="w-12 h-1 bg-wedding-gold/30" />
-                    <p className="text-sm leading-relaxed text-wedding-stone/80">
-                      We look forward to celebrating this joyous occasion with you. Please see the map for directions.
-                    </p>
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.venueName + " " + settings.venueAddress)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-wedding-gold hover:text-yellow-700 font-bold uppercase text-xs tracking-wider gap-2 mt-4"
-                    >
-                      <Icons.MapPin className="w-4 h-4" /> Open in Maps
-                    </a>
+               <div className="grid md:grid-cols-2 gap-4 items-stretch bg-white p-4 md:p-6 rounded-lg shadow-md border border-wedding-stone/10">
+                  <div className="flex flex-col justify-center text-left space-y-2 p-2">
+                      <h3 className="text-2xl font-serif font-bold text-wedding-charcoal">{settings.venueName || "Wedding Venue"}</h3>
+                      <p className="text-wedding-stone text-base leading-relaxed">{settings.venueAddress || "Address details here"}</p>
+                      
+                      <div className="pt-4">
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.venueName + " " + settings.venueAddress)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center bg-wedding-gold text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors font-medium text-sm gap-2"
+                        >
+                          <Icons.MapPin className="w-4 h-4" /> Open Google Maps
+                        </a>
+                      </div>
                   </div>
                   
-                  <div className="order-1 md:order-2 w-full h-64 bg-stone-100 rounded-lg overflow-hidden border border-wedding-stone/20">
+                  <div className="w-full h-64 md:h-auto min-h-[250px] bg-stone-100 rounded-lg overflow-hidden border border-wedding-stone/20 relative">
                     {mapSrc ? (
                       <iframe 
                         src={mapSrc} 
                         width="100%" 
                         height="100%" 
-                        style={{ border: 0 }} 
+                        style={{ border: 0, position: 'absolute', inset: 0 }} 
                         allowFullScreen 
                         loading="lazy" 
                         referrerPolicy="no-referrer-when-downgrade"
                         title="Wedding Location"
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-wedding-stone/40">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-wedding-stone/40">
                          <Icons.MapPin className="w-8 h-8 mb-2" />
                          <span className="text-sm">Map unavailable</span>
                       </div>
