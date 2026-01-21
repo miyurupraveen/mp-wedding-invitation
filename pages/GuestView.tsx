@@ -3,13 +3,14 @@ import { useParams } from 'react-router-dom';
 import { useWedding } from '../context/WeddingContext';
 import { OpeningAnimation } from '../components/OpeningAnimation';
 import { Invitee } from '../types';
+import { Button, Input, Icons } from '../components/UI';
 
 interface GuestViewProps {
   previewId?: string;
 }
 
 export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
-  const { getInvitee, settings, isLoading: contextLoading } = useWedding();
+  const { getInvitee, updateInvitee, settings, isLoading: contextLoading } = useWedding();
   const { slug } = useParams<{ slug: string }>();
   
   const [invitee, setInvitee] = useState<Invitee | undefined>(undefined);
@@ -19,6 +20,12 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
   const [contentVisible, setContentVisible] = useState(false); // Controls opacity of the main page
   const [animationMounted, setAnimationMounted] = useState(true); // Controls DOM presence of animation overlay
   
+  // RSVP Form State
+  const [rsvpStatus, setRsvpStatus] = useState<'attending' | 'declined' | null>(null);
+  const [guestCount, setGuestCount] = useState<number>(1);
+  const [dietary, setDietary] = useState('');
+  const [isSubmittingRsvp, setIsSubmittingRsvp] = useState(false);
+
   useEffect(() => {
     // Priority: 1. Direct Preview ID (Admin), 2. URL Slug
     const identifier = previewId || slug;
@@ -26,9 +33,43 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
     if (identifier) {
       const found = getInvitee(identifier);
       setInvitee(found);
+      if (found) {
+        // Initialize RSVP state if exists
+        if (found.rsvpStatus && found.rsvpStatus !== 'pending') {
+          setRsvpStatus(found.rsvpStatus);
+        }
+        if (found.guestCount) setGuestCount(found.guestCount);
+        if (found.dietaryRestrictions) setDietary(found.dietaryRestrictions);
+      }
     }
     setLoading(false);
   }, [slug, getInvitee, previewId]);
+
+  const handleRsvpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invitee || !rsvpStatus) return;
+
+    setIsSubmittingRsvp(true);
+    await updateInvitee(invitee.id, {
+      rsvpStatus,
+      guestCount: rsvpStatus === 'attending' ? guestCount : 0,
+      dietaryRestrictions: rsvpStatus === 'attending' ? dietary : ''
+    });
+    // Artificial delay for better UX
+    setTimeout(() => {
+      setIsSubmittingRsvp(false);
+      alert("Thank you! Your RSVP has been sent.");
+    }, 800);
+  };
+
+  const handleChangeResponse = () => {
+    if (invitee) {
+      // Optimistically update local invitee state to show form
+      setInvitee({ ...invitee, rsvpStatus: 'pending' });
+      // Reset local form state
+      setRsvpStatus(null);
+    }
+  };
 
   if (loading || (contextLoading && !previewId)) {
     return (
@@ -44,6 +85,16 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
   
   // Title options to display with strike-through logic
   const titleOptions = ['Ven', 'Mr & Mrs', 'Mr', 'Mrs', 'Family'];
+
+  // Safe Map URL extraction
+  const getEmbedUrl = (input?: string) => {
+    if (!input) return null;
+    // If it is an iframe string, extract src
+    const srcMatch = input.match(/src="([^"]+)"/);
+    if (srcMatch && srcMatch[1]) return srcMatch[1];
+    return input; // Assume direct URL
+  };
+  const mapSrc = getEmbedUrl(settings.mapUrl);
 
   return (
     <div className="min-h-screen bg-wedding-ivory text-wedding-charcoal font-sans overflow-x-hidden">
@@ -203,6 +254,167 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
             )}
           </div>
         </section>
+
+        {/* Location Section */}
+        {(settings.venueName || settings.mapUrl) && (
+          <section className="py-16 px-4 bg-wedding-ivory flex justify-center">
+            <div className="max-w-4xl w-full text-center">
+               <h2 className="font-serif text-3xl md:text-4xl text-wedding-gold mb-8">The Celebration</h2>
+               
+               <div className="grid md:grid-cols-2 gap-8 items-center bg-white p-6 md:p-8 rounded-lg shadow-md border border-wedding-stone/10">
+                  <div className="text-left space-y-4 order-2 md:order-1">
+                    <div>
+                      <h3 className="text-xl font-bold text-wedding-charcoal">{settings.venueName || "Wedding Venue"}</h3>
+                      <p className="text-wedding-stone mt-1">{settings.venueAddress || "Address details here"}</p>
+                    </div>
+                    <div className="w-12 h-1 bg-wedding-gold/30" />
+                    <p className="text-sm leading-relaxed text-wedding-stone/80">
+                      We look forward to celebrating this joyous occasion with you. Please see the map for directions.
+                    </p>
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.venueName + " " + settings.venueAddress)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-wedding-gold hover:text-yellow-700 font-bold uppercase text-xs tracking-wider gap-2 mt-4"
+                    >
+                      <Icons.MapPin className="w-4 h-4" /> Open in Maps
+                    </a>
+                  </div>
+                  
+                  <div className="order-1 md:order-2 w-full h-64 bg-stone-100 rounded-lg overflow-hidden border border-wedding-stone/20">
+                    {mapSrc ? (
+                      <iframe 
+                        src={mapSrc} 
+                        width="100%" 
+                        height="100%" 
+                        style={{ border: 0 }} 
+                        allowFullScreen 
+                        loading="lazy" 
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title="Wedding Location"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-wedding-stone/40">
+                         <Icons.MapPin className="w-8 h-8 mb-2" />
+                         <span className="text-sm">Map unavailable</span>
+                      </div>
+                    )}
+                  </div>
+               </div>
+            </div>
+          </section>
+        )}
+
+        {/* RSVP Section */}
+        {invitee && (
+          <section className="py-16 px-4 bg-wedding-cream/30 flex justify-center">
+            <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-8 border-t-4 border-wedding-gold relative overflow-hidden">
+               {/* Decorative Background */}
+               <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-wedding-gold/10 rounded-full blur-xl" />
+               <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-32 h-32 bg-wedding-stone/10 rounded-full blur-xl" />
+               
+               <div className="relative z-10">
+                 <h2 className="font-serif text-3xl text-center text-wedding-charcoal mb-2">RSVP</h2>
+                 <p className="text-center text-wedding-stone text-sm mb-8 italic">Kindly respond by Dec 1st</p>
+
+                 {!invitee.rsvpStatus || invitee.rsvpStatus === 'pending' || isSubmittingRsvp ? (
+                   <form onSubmit={handleRsvpSubmit} className="space-y-6">
+                      <div className="space-y-3">
+                         <label className="flex items-center gap-3 p-3 border border-wedding-stone/20 rounded-lg cursor-pointer hover:bg-wedding-cream/20 transition-colors">
+                            <input 
+                              type="radio" 
+                              name="rsvp" 
+                              value="attending" 
+                              checked={rsvpStatus === 'attending'} 
+                              onChange={() => setRsvpStatus('attending')}
+                              className="text-wedding-gold focus:ring-wedding-gold"
+                            />
+                            <span className="text-wedding-charcoal font-medium">Joyfully Accept</span>
+                         </label>
+                         
+                         <label className="flex items-center gap-3 p-3 border border-wedding-stone/20 rounded-lg cursor-pointer hover:bg-wedding-cream/20 transition-colors">
+                            <input 
+                              type="radio" 
+                              name="rsvp" 
+                              value="declined" 
+                              checked={rsvpStatus === 'declined'} 
+                              onChange={() => setRsvpStatus('declined')}
+                              className="text-wedding-gold focus:ring-wedding-gold"
+                            />
+                            <span className="text-wedding-charcoal font-medium">Regretfully Decline</span>
+                         </label>
+                      </div>
+
+                      {rsvpStatus === 'attending' && (
+                        <div className="space-y-4 animate-fade-in-up">
+                           <div className="border-t border-wedding-stone/10 pt-4 mt-2">
+                             <Input 
+                               label="Number of Guests" 
+                               type="number" 
+                               min={1} 
+                               max={10} 
+                               value={guestCount}
+                               onChange={(e) => setGuestCount(parseInt(e.target.value) || 1)}
+                             />
+                           </div>
+                           <div>
+                             <Input 
+                               label="Dietary Restrictions (Optional)" 
+                               placeholder="e.g. Vegetarian, Nut Allergy" 
+                               value={dietary}
+                               onChange={(e) => setDietary(e.target.value)}
+                             />
+                           </div>
+                        </div>
+                      )}
+
+                      <Button 
+                        type="submit" 
+                        className="w-full mt-4" 
+                        disabled={!rsvpStatus || isSubmittingRsvp}
+                        isLoading={isSubmittingRsvp}
+                      >
+                        Submit Response
+                      </Button>
+                   </form>
+                 ) : (
+                   <div className="text-center py-6 animate-fade-in">
+                      {invitee.rsvpStatus === 'attending' ? (
+                        <div className="flex flex-col items-center gap-3">
+                           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2">
+                              <Icons.Check className="w-6 h-6" />
+                           </div>
+                           <h3 className="text-xl font-serif text-wedding-charcoal">Response Confirmed!</h3>
+                           <p className="text-wedding-stone">
+                             We are delighted that you will be joining us.
+                             <br/>
+                             <span className="text-sm mt-2 block">Guests: {invitee.guestCount}</span>
+                           </p>
+                        </div>
+                      ) : (
+                         <div className="flex flex-col items-center gap-3">
+                            <div className="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center text-wedding-stone mb-2">
+                              <Icons.Heart className="w-6 h-6" />
+                           </div>
+                           <h3 className="text-xl font-serif text-wedding-charcoal">Response Received</h3>
+                           <p className="text-wedding-stone">
+                             We will miss you, but thank you for letting us know.
+                           </p>
+                        </div>
+                      )}
+                      
+                      <button 
+                        onClick={handleChangeResponse}
+                        className="text-xs text-wedding-gold underline mt-6 hover:text-yellow-700"
+                      >
+                        Change Response
+                      </button>
+                   </div>
+                 )}
+               </div>
+            </div>
+          </section>
+        )}
 
         <footer className="bg-wedding-cream py-12 text-center text-wedding-stone/60 text-sm">
           <p>With Love, {settings.coupleName}</p>
