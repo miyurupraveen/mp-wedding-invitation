@@ -17,6 +17,7 @@ export interface WeddingContextType {
   settings: WeddingSettings;
   invitees: Invitee[];
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (password: string) => boolean;
   logout: () => void;
   updateSettings: (newSettings: Partial<WeddingSettings>) => void;
