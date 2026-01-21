@@ -9,7 +9,7 @@ interface GuestViewProps {
 }
 
 export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
-  const { getInvitee, settings } = useWedding();
+  const { getInvitee, settings, isLoading: contextLoading } = useWedding();
   const { slug } = useParams<{ slug: string }>();
   
   const [invitee, setInvitee] = useState<Invitee | undefined>(undefined);
@@ -30,7 +30,13 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
     setLoading(false);
   }, [slug, getInvitee, previewId]);
 
-  if (loading) return null;
+  if (loading || (contextLoading && !previewId)) {
+    return (
+      <div className="min-h-screen bg-wedding-ivory flex flex-col items-center justify-center gap-4">
+         <div className="w-12 h-12 border-4 border-wedding-gold/30 border-t-wedding-gold rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   // Fallback if no ID/Slug provided or not found
   const displayGuestName = invitee?.name || "Family & Friends";
