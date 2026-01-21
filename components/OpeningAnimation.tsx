@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Icons } from './UI';
+// @ts-ignore
+import confetti from 'canvas-confetti';
 
 interface OpeningAnimationProps {
   guestName: string;
@@ -19,6 +21,16 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
 
   const handleOpen = () => {
     setIsOpening(true);
+    
+    // Trigger confetti when opening the envelope
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ['#D4AF37', '#E8D5D5', '#A89F91', '#F5EFE6'], // Gold, Blush, Stone, Cream
+      zIndex: 100, // Ensure it's above the envelope but below extreme overlays if any
+      disableForReducedMotion: true
+    });
     
     // Timeline:
     // 0ms: Start opening (ribbon moves, envelope flaps open)
@@ -222,22 +234,12 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
 
       {/* --- Action Area: Title (Top) --- */}
       <div className={`absolute top-16 md:top-24 z-50 w-full flex justify-center transition-all duration-1000 ${isOpening ? 'opacity-0 -translate-y-8' : 'opacity-100 translate-y-0'}`}>
-        <div className="text-center">
-           <p className="font-serif text-stone-500 italic mb-2">Invitation for</p>
-           <h2 className="font-serif text-3xl md:text-4xl text-wedding-charcoal">{guestName}</h2>
+        <div className="text-center animate-pulse">
+           <p className="font-serif text-xl md:text-2xl text-wedding-charcoal tracking-wide">Tap to open the invitation</p>
         </div>
       </div>
       
-      {/* --- Action Area: Button (Bottom) --- */}
-      <div className={`absolute bottom-16 md:bottom-24 z-50 w-full flex justify-center transition-all duration-1000 ${isOpening ? 'opacity-0 translate-y-8 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
-        <button
-          onClick={handleOpen}
-          className="group relative px-8 py-3 bg-wedding-charcoal text-white font-serif tracking-widest uppercase text-sm rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-all"
-        >
-          <span className="relative z-10 group-hover:text-wedding-charcoal transition-colors duration-500">Open Invitation</span>
-          <div className="absolute inset-0 bg-wedding-gold transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]" />
-        </button>
-      </div>
+      {/* --- Action Area: Button (Bottom) - REMOVED --- */}
 
        {/* --- Action Area: Enter Button (Appears after opening) --- */}
        <div className={`absolute bottom-12 md:bottom-20 z-50 w-full flex justify-center transition-all duration-1000 ${showEnterButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}`}>
