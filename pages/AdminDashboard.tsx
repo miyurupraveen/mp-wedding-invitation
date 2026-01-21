@@ -150,6 +150,34 @@ export const AdminDashboard: React.FC = () => {
 
             <Card>
               <h2 className="text-xl font-serif mb-4 flex items-center gap-2">
+                <Icons.MapPin className="w-5 h-5 text-wedding-gold" /> Venue
+              </h2>
+              <div className="space-y-4">
+                <Input 
+                  label="Venue Name" 
+                  value={settings.venueName || ''} 
+                  onChange={(e) => updateSettings({ venueName: e.target.value })} 
+                />
+                <Input 
+                  label="Address" 
+                  value={settings.venueAddress || ''} 
+                  onChange={(e) => updateSettings({ venueAddress: e.target.value })} 
+                />
+                 <div className="space-y-1">
+                  <label className="block text-sm font-medium text-wedding-charcoal/80 font-serif">Map Embed URL</label>
+                  <textarea
+                    className="w-full px-3 py-2 bg-white border border-wedding-stone/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-wedding-gold/20 focus:border-wedding-gold transition-colors text-sm h-20"
+                    value={settings.mapUrl || ''}
+                    onChange={(e) => updateSettings({ mapUrl: e.target.value })}
+                    placeholder='<iframe src="..."></iframe> or URL'
+                  />
+                  <p className="text-[10px] text-wedding-stone">Paste the "Embed a map" URL from Google Maps</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card>
+              <h2 className="text-xl font-serif mb-4 flex items-center gap-2">
                 <Icons.Upload className="w-5 h-5 text-wedding-gold" /> Invitation Card
               </h2>
               <div className="border-2 border-dashed border-wedding-stone/30 rounded-lg p-6 text-center hover:bg-wedding-cream/30 transition-colors relative group">
@@ -247,6 +275,7 @@ export const AdminDashboard: React.FC = () => {
                   <thead className="text-xs text-wedding-stone uppercase bg-wedding-ivory">
                     <tr>
                       <th className="px-4 py-3">Name</th>
+                      <th className="px-4 py-3">RSVP</th>
                       <th className="px-4 py-3">Links</th>
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
@@ -264,6 +293,19 @@ export const AdminDashboard: React.FC = () => {
                             {inv.name}
                           </div>
                           {inv.message && <p className="text-xs text-wedding-stone font-light truncate max-w-xs mt-0.5">{inv.message}</p>}
+                        </td>
+                        <td className="px-4 py-3">
+                          {inv.rsvpStatus === 'attending' ? (
+                            <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded-full flex w-fit items-center gap-1">
+                               <Icons.Check className="w-3 h-3" /> Attending ({inv.guestCount})
+                            </span>
+                          ) : inv.rsvpStatus === 'declined' ? (
+                            <span className="text-red-600 font-bold text-xs bg-red-50 px-2 py-1 rounded-full w-fit">
+                               Declined
+                            </span>
+                          ) : (
+                            <span className="text-wedding-stone text-xs italic">Pending</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 flex items-center gap-3">
                           <button 
@@ -293,7 +335,7 @@ export const AdminDashboard: React.FC = () => {
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan={3} className="px-4 py-8 text-center text-wedding-stone italic">
+                        <td colSpan={4} className="px-4 py-8 text-center text-wedding-stone italic">
                           No guests found.
                         </td>
                       </tr>
