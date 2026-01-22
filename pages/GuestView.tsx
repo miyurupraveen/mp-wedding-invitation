@@ -389,14 +389,18 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
                       {rsvpStatus === 'attending' && (
                         <div className="space-y-4 animate-fade-in-up">
                            <div className="border-t border-wedding-stone/10 pt-4 mt-2">
-                             <Input 
-                               label="Number of Guests" 
-                               type="number" 
-                               min={1} 
-                               max={10} 
+                             <label className="block text-sm font-medium text-wedding-charcoal/80 mb-1 font-serif">Number of Guests</label>
+                             <select
                                value={guestCount}
-                               onChange={(e) => setGuestCount(parseInt(e.target.value) || 1)}
-                             />
+                               onChange={(e) => setGuestCount(parseInt(e.target.value))}
+                               className="w-full px-3 py-2 bg-white border border-wedding-stone/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-wedding-gold/20 focus:border-wedding-gold transition-colors text-wedding-charcoal"
+                             >
+                               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                 <option key={num} value={num}>
+                                   {num}
+                                 </option>
+                               ))}
+                             </select>
                            </div>
                            <div>
                              <Input 
