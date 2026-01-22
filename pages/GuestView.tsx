@@ -4,6 +4,7 @@ import { useWedding } from '../context/WeddingContext';
 import { OpeningAnimation } from '../components/OpeningAnimation';
 import { Invitee } from '../types';
 import { Button, Input, Icons } from '../components/UI';
+import { useToast } from '../context/ToastContext';
 
 interface GuestViewProps {
   previewId?: string;
@@ -12,6 +13,7 @@ interface GuestViewProps {
 export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
   const { getInvitee, updateInvitee, settings, isLoading: contextLoading } = useWedding();
   const { slug } = useParams<{ slug: string }>();
+  const { showToast } = useToast();
   
   const [invitee, setInvitee] = useState<Invitee | undefined>(undefined);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
     // Artificial delay for better UX
     setTimeout(() => {
       setIsSubmittingRsvp(false);
-      alert("Thank you! Your RSVP has been sent.");
+      showToast("Thank you! Your RSVP has been sent.", 'success');
     }, 800);
   };
 
