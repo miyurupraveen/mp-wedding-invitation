@@ -4,6 +4,7 @@ import { Button, Input, Card, Icons } from '../components/UI';
 import { GuestView } from './GuestView';
 import { isFirebaseEnabled } from '../firebaseConfig';
 import { read, utils } from 'xlsx';
+import { useToast } from '../context/ToastContext';
 
 // Helper to compress images for Firestore (Limit < 1MB)
 const compressImage = (file: File): Promise<string> => {
@@ -51,6 +52,7 @@ const compressImage = (file: File): Promise<string> => {
 
 export const AdminDashboard: React.FC = () => {
   const { settings, invitees, updateSettings, addInvitee, addBatchInvitees, deleteInvitee, logout } = useWedding();
+  const { showToast } = useToast();
   const [newGuestName, setNewGuestName] = useState('');
   const [newGuestTitle, setNewGuestTitle] = useState('Mr & Mrs');
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,16 +121,16 @@ export const AdminDashboard: React.FC = () => {
 
       if (guestsToAdd.length > 0) {
         await addBatchInvitees(guestsToAdd);
-        alert(`Successfully imported ${guestsToAdd.length} guests.`);
+        showToast(`Successfully imported ${guestsToAdd.length} guests.`, 'success');
       } else {
-        alert("No valid guests found in the file.");
+        showToast("No valid guests found in the file.", 'error');
       }
       
       // Clear input
       e.target.value = '';
     } catch (err) {
       console.error(err);
-      alert("Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file with 2 columns: Name, Title.");
+      showToast("Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file with 2 columns: Name, Title.", 'error');
     }
   };
 
@@ -141,7 +143,7 @@ export const AdminDashboard: React.FC = () => {
   const copyLink = (slug: string) => {
     const url = getInviteUrl(slug);
     navigator.clipboard.writeText(url);
-    alert('Invitation link copied to clipboard!');
+    showToast('Invitation link copied to clipboard!', 'success');
   };
 
   const filteredInvitees = invitees.filter(inv => 
