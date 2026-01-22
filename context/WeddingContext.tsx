@@ -9,7 +9,8 @@ import {
   deleteDoc, 
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  writeBatch
 } from 'firebase/firestore';
 
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
@@ -173,6 +174,61 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const addBatchInvitees = async (guests: { name: string; title: string }[]) => {
+    const firestore = db;
+    const newInvitees: Invitee[] = [];
+    
+    // Create a Set of existing slugs to ensure uniqueness during this batch process
+    const existingSlugs = new Set(invitees.map(inv => inv.slug));
+    
+    for (const guest of guests) {
+      let slug = guest.name.trim().toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      if (!slug) slug = 'guest';
+
+      let uniqueSlug = slug;
+      let counter = 1;
+      
+      // Check against existing AND newly created in this batch
+      while (existingSlugs.has(uniqueSlug)) {
+        uniqueSlug = `${slug}-${counter}`;
+        counter++;
+      }
+      
+      existingSlugs.add(uniqueSlug);
+      
+      const newInvitee: Invitee = {
+        id: generateId(),
+        slug: uniqueSlug,
+        name: guest.name,
+        title: guest.title,
+        viewed: false,
+        rsvpStatus: 'pending',
+        guestCount: 0,
+        dietaryRestrictions: ''
+      };
+      
+      newInvitees.push(newInvitee);
+    }
+
+    if (isFirebaseEnabled && firestore) {
+      try {
+        const batch = writeBatch(firestore);
+        newInvitees.forEach(inv => {
+          const ref = doc(firestore, 'invitees', inv.id);
+          batch.set(ref, inv);
+        });
+        await batch.commit();
+      } catch (error) {
+        console.error("Failed to batch add guests:", error);
+        alert("Failed to save batch guests to database.");
+      }
+    } else {
+      setInvitees(prev => [...newInvitees, ...prev]);
+    }
+  };
+
   const updateInvitee = async (id: string, data: Partial<Invitee>) => {
     const firestore = db;
     if (isFirebaseEnabled && firestore) {
@@ -213,6 +269,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       logout,
       updateSettings,
       addInvitee,
+      addBatchInvitees,
       updateInvitee,
       deleteInvitee,
       getInvitee
