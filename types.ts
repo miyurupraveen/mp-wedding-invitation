@@ -30,6 +30,7 @@ export interface WeddingContextType {
   logout: () => void;
   updateSettings: (newSettings: Partial<WeddingSettings>) => void;
   addInvitee: (name: string, title: string) => Promise<void> | void;
+  addBatchInvitees: (guests: { name: string; title: string }[]) => Promise<void> | void;
   updateInvitee: (id: string, data: Partial<Invitee>) => void;
   deleteInvitee: (id: string) => void;
   getInvitee: (identifier: string) => Invitee | undefined;
