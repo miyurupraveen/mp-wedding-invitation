@@ -13,3 +13,11 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare module 'xlsx' {
+  export function read(data: any, options?: any): any;
+  export const utils: {
+    sheet_to_json: (worksheet: any, options?: any) => any[];
+    [key: string]: any;
+  };
+}
