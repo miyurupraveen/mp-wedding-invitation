@@ -3,6 +3,7 @@ import { useWedding } from '../context/WeddingContext';
 import { Button, Input, Card, Icons } from '../components/UI';
 import { GuestView } from './GuestView';
 import { isFirebaseEnabled } from '../firebaseConfig';
+import { read, utils } from 'xlsx';
 
 // Helper to compress images for Firestore (Limit < 1MB)
 const compressImage = (file: File): Promise<string> => {
@@ -49,7 +50,7 @@ const compressImage = (file: File): Promise<string> => {
 };
 
 export const AdminDashboard: React.FC = () => {
-  const { settings, invitees, updateSettings, addInvitee, deleteInvitee, logout } = useWedding();
+  const { settings, invitees, updateSettings, addInvitee, addBatchInvitees, deleteInvitee, logout } = useWedding();
   const [newGuestName, setNewGuestName] = useState('');
   const [newGuestTitle, setNewGuestTitle] = useState('Mr & Mrs');
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,6 +82,53 @@ export const AdminDashboard: React.FC = () => {
       addInvitee(newGuestName.trim(), newGuestTitle);
       setNewGuestName('');
       setNewGuestTitle('Mr & Mrs');
+    }
+  };
+
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = read(arrayBuffer);
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      // Get data as array of arrays (e.g. [['Name', 'Title'], ['John', 'Mr']])
+      const jsonData: any[][] = utils.sheet_to_json(worksheet, { header: 1 });
+      
+      const guestsToAdd: { name: string; title: string }[] = [];
+      
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (!row || row.length === 0) continue;
+        
+        const name = row[0] ? String(row[0]).trim() : '';
+        const title = row[1] ? String(row[1]).trim() : 'Mr & Mrs';
+        
+        // Skip header row if it resembles 'Name' and 'Title'
+        if (i === 0 && name.toLowerCase().includes('name') && title.toLowerCase().includes('title')) {
+          continue;
+        }
+
+        if (name) {
+          guestsToAdd.push({ name, title });
+        }
+      }
+
+      if (guestsToAdd.length > 0) {
+        await addBatchInvitees(guestsToAdd);
+        alert(`Successfully imported ${guestsToAdd.length} guests.`);
+      } else {
+        alert("No valid guests found in the file.");
+      }
+      
+      // Clear input
+      e.target.value = '';
+    } catch (err) {
+      console.error(err);
+      alert("Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file with 2 columns: Name, Title.");
     }
   };
 
@@ -224,8 +272,8 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Add New Guest Form */}
-              <form onSubmit={handleAddGuest} className="bg-wedding-ivory/50 p-4 rounded-lg mb-6 border border-wedding-stone/10">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+              <div className="bg-wedding-ivory/50 p-4 rounded-lg mb-6 border border-wedding-stone/10">
+                <form onSubmit={handleAddGuest} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end mb-4">
                   <div className="md:col-span-4">
                     <Input 
                       placeholder="Guest Name (e.g. Aunt Mary)" 
@@ -257,8 +305,24 @@ export const AdminDashboard: React.FC = () => {
                   <div className="md:col-span-2">
                     <Button type="submit" className="w-full">Add</Button>
                   </div>
+                </form>
+
+                {/* Bulk Upload Section */}
+                <div className="mt-4 pt-4 border-t border-wedding-stone/10 flex items-center justify-between">
+                  <p className="text-xs text-wedding-stone">
+                    Bulk Import: Upload Excel (.xlsx) with 2 columns: Name, Title.
+                  </p>
+                  <label className="cursor-pointer text-xs font-bold text-wedding-gold hover:text-yellow-600 uppercase tracking-wide border border-wedding-gold/30 px-3 py-1.5 rounded hover:bg-wedding-gold/5 transition-colors flex items-center gap-2">
+                    <Icons.Upload className="w-3 h-3" /> Upload Excel
+                    <input 
+                      type="file" 
+                      accept=".xlsx, .xls" 
+                      className="hidden" 
+                      onChange={handleBulkUpload} 
+                    />
+                  </label>
                 </div>
-              </form>
+              </div>
 
               {/* Search */}
               <div className="mb-4">
