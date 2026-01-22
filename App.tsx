@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { WeddingProvider, useWedding } from './context/WeddingContext';
+import { ToastProvider } from './context/ToastContext';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { GuestView } from './pages/GuestView';
 import { Login } from './pages/Login';
@@ -37,11 +38,13 @@ const MainRouter = () => {
 
 const App: React.FC = () => {
   return (
-    <WeddingProvider>
-      <HashRouter>
-        <MainRouter />
-      </HashRouter>
-    </WeddingProvider>
+    <ToastProvider>
+      <WeddingProvider>
+        <HashRouter>
+          <MainRouter />
+        </HashRouter>
+      </WeddingProvider>
+    </ToastProvider>
   );
 };
 
