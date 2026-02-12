@@ -205,7 +205,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
                   }}
                 >
                   {/* Changed gap to 5px on mobile, md:gap-3 is 12px */}
-                  <div className="flex flex-wrap justify-center gap-[5px] md:gap-3 font-serif font-medium"
+                  <div className="flex flex-wrap justify-center gap-[7px] md:gap-3 font-serif font-medium"
                        style={{
                          fontSize: 'clamp(9px, 2vw, 14px)', 
                          color: 'transparent', // Text is invisible, serving only as anchors for lines
