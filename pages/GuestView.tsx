@@ -86,7 +86,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
   const displayMessage = invitee?.message || `We invite you to celebrate our wedding.`;
   
   // Title options to display with strike-through logic
-  const titleOptions = ['Ven', 'Mr & Mrs', 'Mr', 'Mrs', 'Family'];
+  const titleOptions = ['Dr', 'Mr & Mrs', 'Mr', 'Mrs', 'Family'];
 
   // --- Map Logic ---
   // Combine venue name and address, remove extra spaces/newlines for better search query
@@ -215,7 +215,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
                   >
                     {titleOptions.map((option, index) => (
                       <React.Fragment key={option}>
-                        <span className="relative inline-block px-0.5">
+                        <span className="relative inline-block">
                           {option}
                           {/* Strikethrough if title is set and doesn't match this option */}
                           {invitee?.title && invitee.title !== option && (
