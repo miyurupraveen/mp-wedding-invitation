@@ -119,7 +119,7 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
                           {option}
                           {/* Strikethrough if title is set and doesn't match this option */}
                           {guestTitle && guestTitle !== option && (
-                            <span className="absolute left-0 right-0 top-[55%] h-[1.5px] bg-wedding-charcoal opacity-80 -translate-y-1/2 transform -rotate-2" />
+                            <span className="absolute -left-[1.5px] right-[1.5px] top-[55%] h-[1.5px] bg-wedding-charcoal opacity-80 -translate-y-1/2 transform -rotate-2" />
                           )}
                         </span>
                         {index < titleOptions.length - 1 && <span>/</span>}
@@ -159,7 +159,7 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
                       <span className="relative inline-block">
                         {option}
                         {guestTitle && guestTitle !== option && (
-                          <span className="absolute left-0 right-0 top-1/2 h-[1px] bg-wedding-charcoal opacity-60 -translate-y-1/2" />
+                          <span className="absolute -left-[1.5px] right-[1.5px] top-1/2 h-[1px] bg-wedding-charcoal opacity-60 -translate-y-1/2" />
                         )}
                       </span>
                       {index < titleOptions.length - 1 && <span>/</span>}
