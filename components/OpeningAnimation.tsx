@@ -16,7 +16,7 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
   const [showEnterButton, setShowEnterButton] = useState(false);
 
   // Title options matching GuestView for the strikethrough logic
-  const titleOptions = ['Ven', 'Mr & Mrs', 'Mr', 'Mrs', 'Family'];
+  const titleOptions = ['Dr', 'Mr & Mrs', 'Mr', 'Mrs', 'Family'];
 
   const handleOpen = () => {
     setIsOpening(true);
@@ -115,7 +115,7 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
                   >
                     {titleOptions.map((option, index) => (
                       <React.Fragment key={option}>
-                        <span className="relative inline-block px-0.5">
+                        <span className="relative inline-block">
                           {option}
                           {/* Strikethrough if title is set and doesn't match this option */}
                           {guestTitle && guestTitle !== option && (
