@@ -291,7 +291,7 @@ export const AdminDashboard: React.FC = () => {
                         onChange={e => setNewGuestTitle(e.target.value)} 
                         className="w-full px-3 py-2 bg-white border border-wedding-stone/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-wedding-gold/20 focus:border-wedding-gold transition-colors appearance-none text-wedding-charcoal"
                       >
-                        <option value="Ven">Ven</option>
+                        <option value="Dr">Dr</option>
                         <option value="Mr & Mrs">Mr & Mrs</option>
                         <option value="Mr">Mr</option>
                         <option value="Mrs">Mrs</option>
