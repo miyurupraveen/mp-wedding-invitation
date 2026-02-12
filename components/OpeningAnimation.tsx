@@ -105,7 +105,7 @@ export const OpeningAnimation: React.FC<OpeningAnimationProps> = ({ guestName, g
                   }}
                 >
                   {/* Updated: md:gap-[2px] is 2px */}
-                  <div className="flex flex-wrap justify-center gap-[4px] md:gap-[2px] font-serif font-medium"
+                  <div className="flex flex-wrap justify-center gap-[6px] md:gap-[2px] font-serif font-medium"
                        style={{
                          fontSize: 'clamp(9px, 2vw, 14px)', 
                          color: 'transparent',
