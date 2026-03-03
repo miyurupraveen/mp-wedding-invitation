@@ -168,6 +168,14 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const addInvitee = async (name: string, title: string) => {
+    // Check for duplicates
+    const normalizedName = name.trim().toLowerCase();
+    const isDuplicate = invitees.some(inv => inv.name.trim().toLowerCase() === normalizedName);
+    
+    if (isDuplicate) {
+      throw new Error(`Guest "${name}" already exists.`);
+    }
+
     let slug = name.trim().toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
@@ -212,11 +220,22 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Create a Set of existing slugs to ensure uniqueness during this batch process
     const existingSlugs = new Set(invitees.map(inv => inv.slug));
+    const existingNames = new Set(invitees.map(inv => inv.name.trim().toLowerCase()));
     
     const baseTimestamp = Date.now();
+    const duplicates: string[] = [];
     
     for (let i = 0; i < guests.length; i++) {
       const guest = guests[i];
+      const normalizedName = guest.name.trim().toLowerCase();
+      
+      if (existingNames.has(normalizedName)) {
+        duplicates.push(guest.name);
+        continue;
+      }
+      
+      existingNames.add(normalizedName);
+
       let slug = guest.name.trim().toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
@@ -246,6 +265,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
       
       newInvitees.push(newInvitee);
+    }
+
+    if (duplicates.length > 0) {
+      throw new Error(`Duplicate guests found: ${duplicates.join(', ')}`);
     }
 
     if (isFirebaseEnabled && firestore) {
