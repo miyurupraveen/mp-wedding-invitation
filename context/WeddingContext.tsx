@@ -62,12 +62,27 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
 
       // Listen to Invitees
-      const q = query(collection(firestore, 'invitees'), orderBy('name'));
+      const q = query(collection(firestore, 'invitees'));
       const unsubInvitees = onSnapshot(q, (querySnapshot) => {
         const guests: Invitee[] = [];
         querySnapshot.forEach((doc) => {
           guests.push(doc.data() as Invitee);
         });
+        
+        // Sort by createdAt (oldest first) to match Excel order
+        // Fallback to name for existing records without createdAt
+        guests.sort((a, b) => {
+          if (a.createdAt && b.createdAt) {
+            return a.createdAt - b.createdAt;
+          }
+          // If one has createdAt and other doesn't, put the one with createdAt last (newest)
+          if (a.createdAt) return 1;
+          if (b.createdAt) return -1;
+          
+          // Fallback to alphabetical for old records
+          return a.name.localeCompare(b.name);
+        });
+        
         setInvitees(guests);
         setLoading(false);
       }, (error) => {
@@ -174,7 +189,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       viewed: false,
       rsvpStatus: 'pending',
       guestCount: 0,
-      dietaryRestrictions: ''
+      dietaryRestrictions: '',
+      createdAt: Date.now()
     };
 
     const firestore = db;
@@ -197,7 +213,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Create a Set of existing slugs to ensure uniqueness during this batch process
     const existingSlugs = new Set(invitees.map(inv => inv.slug));
     
-    for (const guest of guests) {
+    const baseTimestamp = Date.now();
+    
+    for (let i = 0; i < guests.length; i++) {
+      const guest = guests[i];
       let slug = guest.name.trim().toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
@@ -222,7 +241,8 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         viewed: false,
         rsvpStatus: 'pending',
         guestCount: 0,
-        dietaryRestrictions: ''
+        dietaryRestrictions: '',
+        createdAt: baseTimestamp + i // Increment to preserve order
       };
       
       newInvitees.push(newInvitee);
