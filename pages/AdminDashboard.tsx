@@ -51,7 +51,7 @@ const compressImage = (file: File, quality = 0.7, maxDim = 1000): Promise<string
 };
 
 export const AdminDashboard: React.FC = () => {
-  const { settings, invitees, updateSettings, addInvitee, addBatchInvitees, deleteInvitee, logout } = useWedding();
+  const { settings, invitees, updateSettings, addInvitee, addBatchInvitees, deleteInvitee, updateInvitee, logout } = useWedding();
   const { showToast } = useToast();
   const [newGuestName, setNewGuestName] = useState('');
   const [newGuestTitle, setNewGuestTitle] = useState('Mr & Mrs');
@@ -59,6 +59,9 @@ export const AdminDashboard: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewGuestId, setPreviewGuestId] = useState<string | null>(null);
+  const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editTitle, setEditTitle] = useState('');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,12 +106,51 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleAddGuest = (e: React.FormEvent) => {
+  const handleAddGuest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newGuestName.trim()) {
-      addInvitee(newGuestName.trim(), newGuestTitle);
-      setNewGuestName('');
-      setNewGuestTitle('Mr & Mrs');
+      try {
+        await addInvitee(newGuestName.trim(), newGuestTitle);
+        setNewGuestName('');
+        setNewGuestTitle('Mr & Mrs');
+        showToast("Guest added successfully!", "success");
+      } catch (error: any) {
+        showToast(error.message, "error");
+      }
+    }
+  };
+
+  const startEditing = (guest: any) => {
+    setEditingGuestId(guest.id);
+    setEditName(guest.name);
+    setEditTitle(guest.title || 'Mr & Mrs');
+  };
+
+  const cancelEditing = () => {
+    setEditingGuestId(null);
+    setEditName('');
+    setEditTitle('');
+  };
+
+  const saveEdit = async (id: string) => {
+    if (!editName.trim()) return;
+    
+    // Check for duplicates (excluding current guest)
+    const isDuplicate = invitees.some(inv => 
+      inv.id !== id && inv.name.trim().toLowerCase() === editName.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      showToast(`Guest "${editName}" already exists.`, "error");
+      return;
+    }
+
+    try {
+      await updateInvitee(id, { name: editName.trim(), title: editTitle });
+      setEditingGuestId(null);
+      showToast("Guest updated successfully!", "success");
+    } catch (error) {
+      showToast("Failed to update guest.", "error");
     }
   };
 
@@ -153,9 +195,15 @@ export const AdminDashboard: React.FC = () => {
       
       // Clear input
       e.target.value = '';
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      showToast("Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file with 2 columns: Name, Title.", 'error');
+      if (err.message && err.message.includes("Duplicate")) {
+        showToast(err.message, 'error');
+      } else {
+        showToast("Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file with 2 columns: Name, Title.", 'error');
+      }
+      // Clear input even on error so user can retry
+      e.target.value = '';
     }
   };
 
@@ -379,15 +427,40 @@ export const AdminDashboard: React.FC = () => {
                           {index + 1}
                         </td>
                         <td className="px-4 py-3 font-medium text-wedding-charcoal">
-                          <div className="flex items-center">
-                            {inv.title && (
-                              <span className="text-[10px] font-bold text-wedding-gold mr-2 uppercase tracking-wider border border-wedding-gold/30 px-1.5 py-0.5 rounded bg-wedding-gold/5">
-                                {inv.title}
-                              </span>
-                            )}
-                            {inv.name}
-                          </div>
-                          {inv.message && <p className="text-xs text-wedding-stone font-light truncate max-w-xs mt-0.5">{inv.message}</p>}
+                          {editingGuestId === inv.id ? (
+                            <div className="flex flex-col gap-2">
+                              <input
+                                type="text"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                className="px-2 py-1 border border-wedding-stone/30 rounded text-sm"
+                                placeholder="Guest Name"
+                              />
+                              <select
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="px-2 py-1 border border-wedding-stone/30 rounded text-sm"
+                              >
+                                <option value="Dr">Dr</option>
+                                <option value="Mr & Mrs">Mr & Mrs</option>
+                                <option value="Mr">Mr</option>
+                                <option value="Mrs">Mrs</option>
+                                <option value="Family">Family</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center">
+                                {inv.title && (
+                                  <span className="text-[10px] font-bold text-wedding-gold mr-2 uppercase tracking-wider border border-wedding-gold/30 px-1.5 py-0.5 rounded bg-wedding-gold/5">
+                                    {inv.title}
+                                  </span>
+                                )}
+                                {inv.name}
+                              </div>
+                              {inv.message && <p className="text-xs text-wedding-stone font-light truncate max-w-xs mt-0.5">{inv.message}</p>}
+                            </>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {inv.rsvpStatus === 'attending' ? (
@@ -419,13 +492,41 @@ export const AdminDashboard: React.FC = () => {
                           </button>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <button 
-                            onClick={() => deleteInvitee(inv.id)}
-                            className="text-red-400 hover:text-red-600 transition-colors p-1"
-                            title="Delete guest"
-                          >
-                            <Icons.Trash className="w-4 h-4" />
-                          </button>
+                          {editingGuestId === inv.id ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                onClick={() => saveEdit(inv.id)}
+                                className="text-green-600 hover:text-green-800 p-1"
+                                title="Save"
+                              >
+                                <Icons.Check className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={cancelEditing}
+                                className="text-red-400 hover:text-red-600 p-1"
+                                title="Cancel"
+                              >
+                                <Icons.X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                onClick={() => startEditing(inv)}
+                                className="text-blue-400 hover:text-blue-600 transition-colors p-1"
+                                title="Edit guest"
+                              >
+                                <Icons.Edit className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => deleteInvitee(inv.id)}
+                                className="text-red-400 hover:text-red-600 transition-colors p-1"
+                                title="Delete guest"
+                              >
+                                <Icons.Trash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     )) : (
