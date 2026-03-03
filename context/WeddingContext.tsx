@@ -130,9 +130,22 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Use setDoc with merge to safely update or create
         // Only send the changed fields to avoid sending large data unnecessarily
         await setDoc(doc(firestore, 'general', 'settings'), newSettings, { merge: true });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to save settings to Firebase:", error);
-        alert("Failed to save settings to database. If you are uploading an image, it might be too large even after compression.");
+        
+        let errorMessage = "Failed to save settings to database.";
+        
+        if (error.code === 'permission-denied') {
+          errorMessage += "\n\nPERMISSION DENIED: Your Firestore Security Rules may be blocking this request. Since this app uses a shared password, you must allow public read/write access in your Firebase Console Rules:\n\nallow read, write: if true;";
+        } else if (error.code === 'resource-exhausted') {
+          errorMessage += "\n\nQUOTA EXCEEDED: You may have reached your free tier limits or the document is too large.";
+        } else if (error.message && error.message.includes("argument")) {
+           errorMessage += "\n\nDATA TOO LARGE: The image or text you are trying to save is too big for Firestore. Try a smaller image.";
+        } else {
+          errorMessage += `\n\nError: ${error.message}`;
+        }
+        
+        alert(errorMessage);
         // Revert optimistic update? 
         // For now, we keep it to avoid UI flickering, but the user knows it failed.
       }
