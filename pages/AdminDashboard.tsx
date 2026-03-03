@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { Button, Input, Card, Icons } from '../components/UI';
 import { GuestView } from './GuestView';
-import { isFirebaseEnabled } from '../firebaseConfig';
+import { isFirebaseEnabled, storage } from '../firebaseConfig'; // Updated import
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { read, utils } from 'xlsx';
 import { useToast } from '../context/ToastContext';
 
 // Helper to compress images for Firestore (Limit < 1MB)
-const compressImage = (file: File): Promise<string> => {
+const compressImage = (file: File, quality = 0.7, maxDim = 1000): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -16,20 +17,19 @@ const compressImage = (file: File): Promise<string> => {
       img.src = e.target?.result as string;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        // Calculate new dimensions (Max 1000px)
+        // Calculate new dimensions
         let width = img.width;
         let height = img.height;
-        const MAX_DIM = 1000;
         
         if (width > height) {
-          if (width > MAX_DIM) {
-            height *= MAX_DIM / width;
-            width = MAX_DIM;
+          if (width > maxDim) {
+            height *= maxDim / width;
+            width = maxDim;
           }
         } else {
-          if (height > MAX_DIM) {
-            width *= MAX_DIM / height;
-            height = MAX_DIM;
+          if (height > maxDim) {
+            width *= maxDim / height;
+            height = maxDim;
           }
         }
         
@@ -38,8 +38,8 @@ const compressImage = (file: File): Promise<string> => {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          // Compress to JPEG at 0.7 quality
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
+          // Compress to JPEG
+          resolve(canvas.toDataURL('image/jpeg', quality));
         } else {
           reject(new Error("Canvas context failed"));
         }
@@ -67,11 +67,36 @@ export const AdminDashboard: React.FC = () => {
       setUploadError(null);
       
       try {
-        const compressedBase64 = await compressImage(file);
-        await updateSettings({ inviteImage: compressedBase64 });
+        let imageUrl = '';
+
+        if (storage) {
+          try {
+            // Try uploading to Firebase Storage first (better for large files)
+            const storageRef = ref(storage, `images/invite_card_${Date.now()}`);
+            
+            // Compress slightly for optimization even if using Storage
+            const compressedBase64 = await compressImage(file, 0.8, 1200);
+            const response = await fetch(compressedBase64);
+            const blob = await response.blob();
+            
+            await uploadBytes(storageRef, blob);
+            imageUrl = await getDownloadURL(storageRef);
+          } catch (storageErr) {
+            console.warn("Storage upload failed, falling back to Base64:", storageErr);
+            // Fallback to Base64 with aggressive compression for Firestore
+            imageUrl = await compressImage(file, 0.5, 800);
+          }
+        } else {
+          // Fallback to Base64 with aggressive compression for Firestore
+          imageUrl = await compressImage(file, 0.5, 800);
+        }
+
+        await updateSettings({ inviteImage: imageUrl });
+        showToast("Invitation card updated successfully!", "success");
       } catch (err) {
         console.error(err);
         setUploadError("Failed to process image. Please try a different file.");
+        showToast("Failed to upload image.", "error");
       } finally {
         setIsUploading(false);
       }
