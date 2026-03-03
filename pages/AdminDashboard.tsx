@@ -84,11 +84,11 @@ export const AdminDashboard: React.FC = () => {
           } catch (storageErr) {
             console.warn("Storage upload failed, falling back to Base64:", storageErr);
             // Fallback to Base64 with aggressive compression for Firestore
-            imageUrl = await compressImage(file, 0.5, 800);
+            imageUrl = await compressImage(file, 0.4, 600);
           }
         } else {
           // Fallback to Base64 with aggressive compression for Firestore
-          imageUrl = await compressImage(file, 0.5, 800);
+          imageUrl = await compressImage(file, 0.4, 600);
         }
 
         await updateSettings({ inviteImage: imageUrl });
