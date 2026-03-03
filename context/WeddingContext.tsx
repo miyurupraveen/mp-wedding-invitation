@@ -128,10 +128,13 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (isFirebaseEnabled && firestore) {
       try {
         // Use setDoc with merge to safely update or create
-        await setDoc(doc(firestore, 'general', 'settings'), { ...settings, ...newSettings }, { merge: true });
+        // Only send the changed fields to avoid sending large data unnecessarily
+        await setDoc(doc(firestore, 'general', 'settings'), newSettings, { merge: true });
       } catch (error) {
         console.error("Failed to save settings to Firebase:", error);
         alert("Failed to save settings to database. If you are uploading an image, it might be too large even after compression.");
+        // Revert optimistic update? 
+        // For now, we keep it to avoid UI flickering, but the user knows it failed.
       }
     }
   };
