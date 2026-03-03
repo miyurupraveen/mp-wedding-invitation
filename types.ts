@@ -9,6 +9,7 @@ export interface Invitee {
   rsvpStatus?: 'attending' | 'declined' | 'pending';
   guestCount?: number;
   dietaryRestrictions?: string;
+  createdAt?: number;
 }
 
 export interface WeddingSettings {
