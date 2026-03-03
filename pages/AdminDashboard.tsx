@@ -365,6 +365,7 @@ export const AdminDashboard: React.FC = () => {
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-wedding-stone uppercase bg-wedding-ivory">
                     <tr>
+                      <th className="px-4 py-3 w-12">#</th>
                       <th className="px-4 py-3">Name</th>
                       <th className="px-4 py-3">RSVP</th>
                       <th className="px-4 py-3">Links</th>
@@ -372,8 +373,11 @@ export const AdminDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredInvitees.length > 0 ? filteredInvitees.map(inv => (
+                    {filteredInvitees.length > 0 ? filteredInvitees.map((inv, index) => (
                       <tr key={inv.id} className="border-b border-wedding-stone/10 hover:bg-wedding-ivory/50 transition-colors">
+                        <td className="px-4 py-3 font-mono text-xs text-wedding-stone/50">
+                          {index + 1}
+                        </td>
                         <td className="px-4 py-3 font-medium text-wedding-charcoal">
                           <div className="flex items-center">
                             {inv.title && (
