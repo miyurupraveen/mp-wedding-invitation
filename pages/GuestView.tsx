@@ -205,7 +205,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
                   }}
                 >
                   {/* Changed gap to 5px on mobile, md:gap-3 is 12px */}
-                  <div className="flex flex-wrap justify-center gap-[8px] md:gap-3 font-serif font-medium"
+                  <div className="flex flex-wrap justify-center gap-[5px] md:gap-3 font-serif font-medium"
                        style={{
                          fontSize: 'clamp(9px, 2vw, 14px)', 
                          color: 'transparent', // Text is invisible, serving only as anchors for lines
@@ -358,7 +358,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
                
                <div className="relative z-10">
                  <h2 className="font-serif text-3xl text-center text-wedding-charcoal mb-2">RSVP</h2>
-                 <p className="text-center text-wedding-stone text-sm mb-8 italic">Kindly respond by Dec 1st</p>
+                 <p className="text-center text-wedding-stone text-sm mb-8 italic">Kindly respond by April 10th</p>
 
                  {!invitee.rsvpStatus || invitee.rsvpStatus === 'pending' || isSubmittingRsvp ? (
                    <form onSubmit={handleRsvpSubmit} className="space-y-6">
@@ -397,7 +397,7 @@ export const GuestView: React.FC<GuestViewProps> = ({ previewId }) => {
                                onChange={(e) => setGuestCount(parseInt(e.target.value))}
                                className="w-full px-3 py-2 bg-white border border-wedding-stone/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-wedding-gold/20 focus:border-wedding-gold transition-colors text-wedding-charcoal"
                              >
-                               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                               {[1, 2, 3, 4, 5].map((num) => (
                                  <option key={num} value={num}>
                                    {num}
                                  </option>
