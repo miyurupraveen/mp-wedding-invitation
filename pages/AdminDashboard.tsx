@@ -77,21 +77,17 @@ export const AdminDashboard: React.FC = () => {
             // Try uploading to Firebase Storage first (better for large files)
             const storageRef = ref(storage, `images/invite_card_${Date.now()}`);
             
-            // Compress slightly for optimization even if using Storage
-            const compressedBase64 = await compressImage(file, 0.8, 1200);
-            const response = await fetch(compressedBase64);
-            const blob = await response.blob();
-            
-            await uploadBytes(storageRef, blob);
+            // Upload original file directly to preserve maximum quality
+            await uploadBytes(storageRef, file);
             imageUrl = await getDownloadURL(storageRef);
           } catch (storageErr) {
             console.warn("Storage upload failed, falling back to Base64:", storageErr);
-            // Fallback to Base64 with aggressive compression for Firestore
-            imageUrl = await compressImage(file, 0.4, 600);
+            // Fallback to Base64 with moderate compression for Firestore
+            imageUrl = await compressImage(file, 0.7, 1000);
           }
         } else {
-          // Fallback to Base64 with aggressive compression for Firestore
-          imageUrl = await compressImage(file, 0.4, 600);
+          // Fallback to Base64 with moderate compression for Firestore
+          imageUrl = await compressImage(file, 0.7, 1000);
         }
 
         await updateSettings({ inviteImage: imageUrl });
