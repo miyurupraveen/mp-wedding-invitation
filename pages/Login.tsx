@@ -7,11 +7,16 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!login(password)) {
+    setIsLoading(true);
+    const success = await login(password);
+    if (!success) {
       setError(true);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -24,12 +29,12 @@ export const Login: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             type="password"
-            placeholder="Enter passcode (Hint: wedding)"
+            placeholder="Enter passcode"
             value={password}
             onChange={(e) => { setPassword(e.target.value); setError(false); }}
-            error={error ? "Incorrect passcode" : undefined}
+            error={error ? "Incorrect passcode or Auth not enabled" : undefined}
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" isLoading={isLoading}>
             Enter Dashboard
           </Button>
         </form>
