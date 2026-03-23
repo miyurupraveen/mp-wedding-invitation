@@ -1,6 +1,7 @@
 import * as firebaseApp from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
 // Safely access Vite env variables
 const env = (import.meta as any).env || {};
@@ -21,4 +22,5 @@ const isConfigured = !!firebaseConfig.apiKey;
 const app = isConfigured ? firebaseApp.initializeApp(firebaseConfig) : undefined;
 export const db = app ? getFirestore(app) : null;
 export const storage = app ? getStorage(app) : null;
+export const auth = app ? getAuth(app) : null;
 export const isFirebaseEnabled = isConfigured;
