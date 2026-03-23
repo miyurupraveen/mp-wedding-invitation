@@ -27,8 +27,8 @@ export interface WeddingContextType {
   invitees: Invitee[];
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
+  login: (password: string) => Promise<boolean> | boolean;
+  logout: () => Promise<void> | void;
   updateSettings: (newSettings: Partial<WeddingSettings>) => void;
   addInvitee: (name: string, title: string) => Promise<void> | void;
   addBatchInvitees: (guests: { name: string; title: string }[]) => Promise<void> | void;
