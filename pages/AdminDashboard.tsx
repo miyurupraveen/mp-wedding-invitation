@@ -59,6 +59,7 @@ export const AdminDashboard: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [previewGuestId, setPreviewGuestId] = useState<string | null>(null);
+  const [deleteGuestId, setDeleteGuestId] = useState<string | null>(null);
   const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editTitle, setEditTitle] = useState('');
@@ -515,7 +516,7 @@ export const AdminDashboard: React.FC = () => {
                                 <Icons.Edit className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => deleteInvitee(inv.id)}
+                                onClick={() => setDeleteGuestId(inv.id)}
                                 className="text-red-400 hover:text-red-600 transition-colors p-1"
                                 title="Delete guest"
                               >
@@ -540,6 +541,29 @@ export const AdminDashboard: React.FC = () => {
 
         </main>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteGuestId && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-xl font-serif text-wedding-charcoal mb-2">Delete Guest?</h3>
+            <p className="text-wedding-stone text-sm mb-6">Are you sure you want to remove this guest? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setDeleteGuestId(null)}>Cancel</Button>
+              <Button 
+                onClick={() => {
+                  deleteInvitee(deleteGuestId);
+                  setDeleteGuestId(null);
+                  showToast("Guest deleted successfully", "success");
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white border-none"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full Screen Preview Modal */}
       {previewGuestId && (
