@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Invitee, WeddingContextType, WeddingSettings } from '../types';
-import { db, isFirebaseEnabled } from '../firebaseConfig';
+import { db, auth, isFirebaseEnabled } from '../firebaseConfig';
 import { 
   collection, 
   doc, 
@@ -12,13 +12,14 @@ import {
   orderBy,
   writeBatch
 } from 'firebase/firestore';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
 
 // Local Mock keys
 const STORAGE_KEY_SETTINGS = 'eternity_settings';
 const STORAGE_KEY_INVITEES = 'eternity_invitees';
-const ADMIN_PASSWORD = 'wedding'; 
+const ADMIN_EMAIL = 'miyurupraveen@gmail.com'; // Using the user's email as the admin account
 
 const defaultSettings: WeddingSettings = {
   inviteImage: null,
@@ -45,10 +46,14 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Capture db locally to ensure TypeScript knows it's not null inside callbacks
     const firestore = db;
 
-    if (isFirebaseEnabled && firestore) {
+    if (isFirebaseEnabled && firestore && auth) {
       // CLOUD MODE: Real-time listeners
       console.log("Wedding Context: Initializing in Cloud Mode (Firebase)");
       
+      const unsubAuth = onAuthStateChanged(auth, (user) => {
+        setIsAuthenticated(!!user);
+      });
+
       // Listen to Settings
       const unsubSettings = onSnapshot(doc(firestore, 'general', 'settings'), (docSnap) => {
         if (docSnap.exists()) {
@@ -90,6 +95,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
 
       return () => {
+        unsubAuth();
         unsubSettings();
         unsubInvitees();
       };
@@ -123,15 +129,44 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // --- Actions ---
 
-  const login = (password: string) => {
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      return true;
+  const login = async (password: string) => {
+    if (isFirebaseEnabled && auth) {
+      try {
+        // Try to sign in
+        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+        setIsAuthenticated(true);
+        return true;
+      } catch (error: any) {
+        // If user doesn't exist, create it with this password
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+          try {
+            await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+            setIsAuthenticated(true);
+            return true;
+          } catch (createError: any) {
+            console.error("Auth error:", createError);
+            if (createError.code === 'auth/operation-not-allowed') {
+              alert("Please enable 'Email/Password' authentication in your Firebase Console -> Authentication -> Sign-in method.");
+            }
+            return false;
+          }
+        }
+        return false;
+      }
+    } else {
+      // Local fallback
+      if (password === 'wedding') {
+        setIsAuthenticated(true);
+        return true;
+      }
+      return false;
     }
-    return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (isFirebaseEnabled && auth) {
+      await auth.signOut();
+    }
     setIsAuthenticated(false);
   };
 
